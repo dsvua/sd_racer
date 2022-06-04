@@ -1,0 +1,37 @@
+{
+  "name": "SD racing car project",
+  "dockerFile": "Dockerfile",
+  "runArgs": [
+    "--privileged",
+    "--gpus",
+    "all",
+    "-e DISPLAY=1",
+    "-e QT_X11_NO_MITSHM=1"
+  ],
+  // "build": {
+  //   "args": {
+  //     "USER_ID": "$(id -u ${USER})",
+  //     "GROUP_ID": "$(id -g ${USER})",
+  //     "USER_NAME": "localenv:USER"
+  //   }
+  // },
+  "mounts": [
+    "source=/dev/bus/usb,target=/dev/bus/usb,type=bind",
+    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "ms-azuretools.vscode-docker",
+        "nachocab.highlight-dodgy-characters",
+        "twxs.cmake",
+        "ms-vscode-remote.remote-containers"
+      ]
+    }
+  },
+  "containerEnv": {
+    "CPATH": "CPATH=/usr/local/cuda/targets/x86_64-linux/include"
+  }
+}

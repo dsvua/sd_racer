@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# temp files
+samples
+test
+build
+images_temp
+
+# IDE
+.idea
+.vscode

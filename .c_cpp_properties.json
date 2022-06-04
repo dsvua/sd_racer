@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "cppStandard": "c++17",
+            // "includePath": [
+            //     "${workspaceFolder}/glibc/**"
+            // ],
+            // "compilerPath": "/usr/bin/gcc",
+            // "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
