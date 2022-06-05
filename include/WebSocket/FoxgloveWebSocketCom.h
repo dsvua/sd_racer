@@ -1,13 +1,14 @@
-#ifndef JETRACER_WEBSOCKET_H
-#define JETRACER_WEBSOCKET_H
+#ifndef JETRACER_FOXGLOVE_WEBSOCKET_H
+#define JETRACER_FOXGLOVE_WEBSOCKET_H
 
-#include "include/WebSocket/foxglove/websocket/server.h"
+#include "WebSocket/foxglove/websocket/server.h"
 #include <nlohmann/json.hpp>
 #include <thread>
 
-#include "include/EventLoop/EventsThread.h"
-#include "include/Types/Context.h"
-#include "include/Types/Events.h"
+#include "EventLoop/EventsThread.h"
+#include "Types/Context.h"
+#include "Types/Events.h"
+#include "Types/Frames.h"
 
 using json = nlohmann::json;
 
@@ -32,4 +33,4 @@ namespace Jetracer
     };
 } // namespace Jetracer
 
-#endif // JETRACER_WEBSOCKET_H
+#endif // JETRACER_FOXGLOVE_WEBSOCKET_H

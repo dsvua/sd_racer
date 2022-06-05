@@ -1,9 +1,7 @@
-#include "include/EventLoop/MainEventLoop.h"
-// #include "RealSense/RealSenseD400.h"
-// #include "RealSense/SaveRawData.h"
-// #include "WebSocket/WebSocketCom.h"
-#include "include/WebSocket/FoxgloveWebSocketCom.h"
-// #include "SlamGpuPipeline/SlamGpuPipeline.h"
+#include "EventLoop/MainEventLoop.h"
+#include "Cameras/RealSenseD400/RealSenseD400.h"
+#include "WebSocket/FoxgloveWebSocketCom.h"
+#include "Slam/SlamLoop.h"
 
 #include <iostream>
 #include <unistd.h> // for sleep function
@@ -37,30 +35,20 @@ namespace Jetracer
             return true;
         };
 
-        // std::cout << "Starting RealSenseD400" << std::endl;
-        // _started_threads.push_back(new Jetracer::RealSenseD400("RealSenseD400", _ctx));
-        // _started_threads.back()->setMaxQueueLength(_ctx->RealSenseD400_max_queue_legth);
-        // _started_threads.back()->createThread();
-
-        // std::cout << "Starting SaveRawData" << std::endl;
-        // _started_threads.push_back(new Jetracer::SaveRawData("SaveRawData", _ctx));
-        // _started_threads.back()->setMaxQueueLength(_ctx->SaveRawData_max_queue_legth);
-        // _started_threads.back()->createThread();
-
-        // // std::cout << "Starting WebSocket" << std::endl;
-        // _started_threads.push_back(new Jetracer::WebSocketCom("WebSocketCom", _ctx));
+        // std::cout << "Starting FoxgloveWebSocket" << std::endl;
+        // _started_threads.push_back(new Jetracer::FoxgloveWebSocketCom("FoxgloveWebSocketCom", _ctx));
         // _started_threads.back()->setMaxQueueLength(_ctx->WebSocketCom_max_queue_legth);
         // _started_threads.back()->createThread();
 
-        // std::cout << "Starting FoxgloveWebSocket" << std::endl;
-        _started_threads.push_back(new Jetracer::FoxgloveWebSocketCom("FoxgloveWebSocketCom", _ctx));
-        _started_threads.back()->setMaxQueueLength(_ctx->WebSocketCom_max_queue_legth);
+        std::cout << "Starting SlamLoop" << std::endl;
+        _started_threads.push_back(new Jetracer::SlamLoop("SlamLoop", _ctx));
+        _started_threads.back()->setMaxQueueLength(_ctx->SlamGpuPipeline_max_queue_length);
         _started_threads.back()->createThread();
 
-        // std::cout << "Starting SlamGpuPipeline" << std::endl;
-        // _started_threads.push_back(new Jetracer::SlamGpuPipeline("SlamGpuPipeline", _ctx));
-        // _started_threads.back()->setMaxQueueLength(_ctx->SlamGpuPipeline_max_queue_length);
-        // _started_threads.back()->createThread();
+        std::cout << "Starting RealSenseD400" << std::endl;
+        _started_threads.push_back(new Jetracer::RealSenseD400("RealSenseD400", _ctx));
+        _started_threads.back()->setMaxQueueLength(_ctx->RealSenseD400_max_queue_legth);
+        _started_threads.back()->createThread();
     }
 
     // MainEventLoop::~MainEventLoop()
@@ -68,8 +56,8 @@ namespace Jetracer
     // }
 
     bool MainEventLoop::subscribeForEvent(EventType _event_type,
-                                           std::string _thread_name,
-                                           std::function<bool(pEvent)> pushEventCallback)
+                                          std::string _thread_name,
+                                          std::function<bool(pEvent)> pushEventCallback)
     {
         std::unique_lock<std::mutex> lk(m_mutex_subscribers);
         _subscribers[_event_type][_thread_name] = pushEventCallback;
@@ -77,7 +65,7 @@ namespace Jetracer
     }
 
     bool MainEventLoop::unSubscribeFromEvent(EventType _event_type,
-                                              std::string _thread_name)
+                                             std::string _thread_name)
     {
         std::unique_lock<std::mutex> lk(m_mutex_subscribers);
         _subscribers[_event_type].erase(_thread_name);

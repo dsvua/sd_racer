@@ -1,71 +1,6 @@
-#include "FoxgloveWebSocketCom.h"
-#include "../SlamGpuPipeline/SlamGpuPipeline.h"
-#include "../cuda_common.h"
+#include "WebSocket/FoxgloveWebSocketCom.h"
+#include "Cuda/CudaCommon.h"
 #include <chrono>
-
-// int main()
-// {
-//     foxglove::websocket::Server server{8765, "example server"};
-
-//     const uint32_t imageChanId = server.addChannel({
-//         .topic = "example_msg",
-//         .encoding = "json",
-//         .schemaName = "ExampleMsg",
-//         .schema =
-//             json{
-//                 {"type", "object"},
-//                 {
-//                     "properties", {
-//                         {"msg", {{"type", "string"}}},
-//                         {"count", {{"type", "number"}}},
-//                     },
-//                 },
-//             }
-//                 .dump(),
-//     });
-
-//     server.setSubscribeHandler([&](foxglove::websocket::ChannelId imageChanId)
-//                                { std::cout << "first client subscribed to " << imageChanId << std::endl; });
-//     server.setUnsubscribeHandler([&](f#include "../SlamGpuPipeline/SlamGpuPipeline.h"
-// oxglove::websocket::ChannelId imageChanId)
-//                                  { std::cout << "last client unsubscribed from " << imageChanId << std::endl; });
-
-//     uint64_t i = 0;
-//     std::shared_ptr<asio::steady_timer> timer;
-//     std::function<void()> setTimer = [&]
-//     {
-//         timer = server.getEndpoint().set_timer(200, [&](std::error_code const &ec)
-//                                                {
-//       if (ec) {
-//         std::cerr << "timer error: " << ec.message() << std::endl;
-//         return;
-//       }
-//       server.sendMessage(imageChanId, nanosecondsSinceEpoch(),
-//                          json{{"msg", "Hello"}, {"count", i++}}.dump());
-//       setTimer(); });
-//     };
-
-//     setTimer();
-
-//     asio::signal_set signals(server.getEndpoint().get_io_service(), SIGINT);
-
-//     signals.async_wait([&](std::error_code const &ec, int sig)
-//                        {
-//     if (ec) {
-//       std::cerr << "signal error: " << ec.message() << std::endl;
-//       return;
-//     }
-//     std::cerr << "received signal " << sig << ", shutting down" << std::endl;
-//     server.removeChannel(imageChanId);
-//     server.stop();
-//     if (timer) {
-//       timer->cancel();
-//     } });
-
-//     server.run();
-
-//     return 0;
-// }
 
 namespace Jetracer
 {
@@ -144,7 +79,7 @@ namespace Jetracer
         };
 
         _ctx->subscribeForEvent(EventType::event_stop_thread, threadName, pushEventCallback);
-        _ctx->subscribeForEvent(EventType::event_gpu_slam_frame, threadName, pushEventCallback);
+        _ctx->subscribeForEvent(EventType::event_rgbd_slam_processed, threadName, pushEventCallback);
 
         // json could be validated at https://jsonlint.com/
         json image_schema = R"({
@@ -211,6 +146,10 @@ namespace Jetracer
 
         server.run();
 
+        Jetracer::pEvent event = std::make_shared<Jetracer::BaseEvent>();
+        event->event_type = Jetracer::EventType::event_stop_thread;
+        _ctx->sendEvent(event);
+
         std::cout << "Exiting FoxgloveWebSocket::Communication" << std::endl;
     }
 
@@ -231,9 +170,10 @@ namespace Jetracer
             break;
         }
 
-        case EventType::event_gpu_slam_frame:
+        case EventType::event_rgbd_slam_processed:
         {
-            std::shared_ptr<slam_frame_t> slam_frame = std::static_pointer_cast<slam_frame_t>(event->message);
+            // std::shared_ptr<slam_frame_t> slam_frame = std::static_pointer_cast<slam_frame_t>(event->message);
+            std::shared_ptr<BaseFrame_t> base_frame = std::static_pointer_cast<RgbdFrame_t>(event->message);
 
             uint64_t sec64 = 0;
             uint64_t nsec64 = nanosecondsSinceEpoch();
@@ -245,11 +185,21 @@ namespace Jetracer
             message["encoding"] = "jpeg";
             message["header"]["stamp"]["sec"] = sec64;
             message["header"]["stamp"]["nsec"] = nsec64;
-            message["data"] = encodeImageBase64(slam_frame->image_length * sizeof(char), slam_frame->image);
+
+            switch (base_frame->frame_type)
+            {
+            case FrameType::RGBD:
+            {
+                std::shared_ptr<RgbdFrame_t> rgbd_frame = std::static_pointer_cast<RgbdFrame_t>(event->message);
+                message["data"] = encodeImageBase64(rgbd_frame->h_image_length * sizeof(char), rgbd_frame->h_image);
+                server.sendMessage(imageChanId, nanosecondsSinceEpoch(), message.dump());
+                break;
+            }
+            default:
+                break;
+            }
             // std::cout << "Created message" << std::endl;
 
-            // server.sendMessage(imageChanId, nanosecondsSinceEpoch(), json{{"msg", "Hello"}, {"count", i++}}.dump());
-            server.sendMessage(imageChanId, nanosecondsSinceEpoch(), message.dump());
             break;
         }
 

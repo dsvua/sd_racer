@@ -1,10 +1,10 @@
 
-#include "include/Types/Context.h"
+#include "Types/Context.h"
 #include <iostream>
 #include <signal.h>
 #include <unistd.h> // for sleep function
-#include "include/EventLoop/MainEventsLoop.h"
-#include "include/Types/Events.h"
+#include "EventLoop/MainEventLoop.h"
+#include "Types/Events.h"
 
 using namespace std;
 

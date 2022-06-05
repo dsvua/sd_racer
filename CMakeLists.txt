@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.18.2 FATAL_ERROR)
 
-SET(PROJECT_NAME jetracer)
+SET(PROJECT_NAME sdracer)
 PROJECT(${PROJECT_NAME} LANGUAGES CUDA CXX)
 
 INCLUDE(GNUInstallDirs)
@@ -23,22 +23,21 @@ if(NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)    
 endif()
 
-include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}) 
-include_directories(include) 
-link_directories(${CMAKE_CUDA_INCLUDE_DIRS})
+# include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}) 
+# link_directories(${CMAKE_CUDA_INCLUDE_DIRS})
 
 # find_library(CUDART_LIBRARY cudart ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 # find_library(CUDADEVRT_LIBRARY cudadevrt ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 find_library(NVJPEG_LIBRARY nvjpeg ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 find_library(ASIO_LIBRARY asio)
-find_library(WEBSOCKETPP_LIBRARY websocketpp)
+# find_library(WEBSOCKETPP_LIBRARY websocketpp)
 find_library(NPPIF_LIBRARY nppif ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 find_library(NPPC_LIBRARY nppc ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 # find_library(CULIBOS culibos ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
 find_package(realsense2 2.29.0 REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(OpenCV REQUIRED)
+# find_package(OpenCV REQUIRED)
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
 

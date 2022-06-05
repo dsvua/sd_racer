@@ -16,15 +16,20 @@ namespace Jetracer
         event_ping,
         event_pong,
 
-        // Realsense D400 events
-        event_realsense_D400_rgb,
-        event_realsense_D400_rgbd,
-        event_realsense_D400_accel,
-        event_realsense_D400_gyro,
+        // Camera events
+        event_rgbd_frame,
+        event_stereo_frame,
+
+        // IMU events, could be emitted by camera
+        event_imu_gyro,
+        event_imu_accel,
 
         // GPU events
         event_gpu_callback,
-        event_gpu_slam_frame,
+
+        // SLAM events
+        event_rgbd_slam_processed,
+        event_stereo_slam_processed,
     };
 
     typedef std::shared_ptr<void> pMessage;

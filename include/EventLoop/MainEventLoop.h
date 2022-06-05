@@ -5,10 +5,10 @@
 #include <mutex>
 #include <map>
 
-#include "include/EventLoop/EventsThread.h"
-#include "include/Types/Constants.h"
-#include "include/Types/Context.h"
-#include "include/Types/Events.h"
+#include "../EventLoop/EventsThread.h"
+#include "../Types/Constants.h"
+#include "../Types/Context.h"
+#include "../Types/Events.h"
 
 namespace Jetracer
 {
