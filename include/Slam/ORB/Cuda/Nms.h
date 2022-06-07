@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cuda_runtime.h>
-#include "../../Defines.h"
+#include "../../../Types/Defines.h"
 #include "../../../Types/Frames.h"
 
 namespace Jetracer

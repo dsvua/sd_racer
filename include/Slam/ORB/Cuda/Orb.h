@@ -3,14 +3,17 @@
 
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
-#include "../../Defines.h"
+#include "../../../Types/Defines.h"
 #include "../../../Types/Frames.h"
+#include "../../../Types/Numerical.h"
 
 namespace Jetracer
 {
     void compute_fast_angle(pRgbdFrame current_frame, TmpData_t &tmp_frame);
 
     void calc_orb(pRgbdFrame current_frame, TmpData_t &tmp_frame);
+
+    void filter_keypoints(pRgbdFrame current_frame, TmpData_t &tmp_frame, float min_score);
 
     void loadPattern();
 

@@ -247,13 +247,14 @@ namespace Jetracer
     //            host functions
     // ---------------------------------------
     void fast_gpu_calculate_lut(unsigned char *d_corner_lut,
-                                const int &min_arc_length)
+                                const int &min_arc_length,
+                                cudaStream_t stream)
     {
         // every thread writes a byte: in total 64kB gets written
         kernel_params_t p = cuda_gen_kernel_params_1d(64 * 1024, 256);
         dim3 threads(256);
         dim3 blocks((64 * 1024 + threads.x - 1) / threads.x);
-        fast_gpu_calculate_lut_kernel<<<p.blocks_per_grid, p.threads_per_block>>>(d_corner_lut,
+        fast_gpu_calculate_lut_kernel<<<p.blocks_per_grid, p.threads_per_block, 0, stream>>>(d_corner_lut,
                                                                                   min_arc_length);
         // checkCudaErrors(cudaStreamSynchronize(stream));
     }

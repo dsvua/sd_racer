@@ -5,6 +5,9 @@
 #include <helper_cuda.h>
 // #include <eigen3/Eigen/Eigen>
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
+#include "Defines.h"
+#include "Math.h"
+#include "ORUtils/SE3Pose.h"
 
 namespace Jetracer
 {
@@ -45,7 +48,15 @@ namespace Jetracer
         float *d_keypoints_angle;
         const float threshold = 200;
 
+        float2 *d_keypoints_pos;
+        float *d_keypoints_score;
+        unsigned char *d_descriptors;
+
         int max_keypoints_num = 0;
+
+        // tracking
+        // TransformMatrix3D camera_left_to_world_guess = TransformMatrix3D::Identity();
+        // TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
 
         pBaseFrame previous_frame;
 
@@ -56,11 +67,36 @@ namespace Jetracer
         FrameType frame_type;
         double timestamp;
         bool keypoints_detected = false;
+        unsigned int keypoints_num = 0;
+        unsigned int *d_keypoints_num;
 
         // For ORB
         float2 *d_keypoints_pos;
         float *d_keypoints_score;
         unsigned char *d_descriptors;
+
+        Matrix4f robot_to_world;
+
+        // TransformMatrix3D robot_to_local_map = TransformMatrix3D::Identity();
+        // TransformMatrix3D local_map_to_robot = TransformMatrix3D::Identity();
+        // TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
+        // TransformMatrix3D world_to_robot = TransformMatrix3D::Identity();
+
+        // TransformMatrix3D camera_left_to_world = TransformMatrix3D::Identity();
+        // TransformMatrix3D world_to_camera_left = TransformMatrix3D::Identity();
+
+        //! @brief position tracking bookkeeping: after optimization
+        // TransformMatrix3D _previous_to_current_camera = TransformMatrix3D::Identity();
+
+        // ds additional information
+        // TransformMatrix3D _camera_left_in_world_guess;
+        // TransformMatrix3D _camera_left_in_world_guess_previous;
+        bool _has_guess = false;
+
+        ImageFrame()
+        {
+            robot_to_world.setIdentity();
+        }
 
         ~ImageFrame()
         {
@@ -70,6 +106,8 @@ namespace Jetracer
                 checkCudaErrors(cudaFree(d_keypoints_score));
             if (d_descriptors)
                 checkCudaErrors(cudaFree(d_descriptors));
+            if (d_keypoints_num)
+                checkCudaErrors(cudaFree(d_keypoints_num));
         }
 
     } ImageFrame_t;

@@ -1,7 +1,4 @@
-// Frame preprocessing
-#define PYRAMID_LEVELS 1
-#define PYRAMID_MIN_LEVEL 0
-#define PYRAMID_MAX_LEVEL PYRAMID_LEVELS
+// #include <eigen3/Eigen/Geometry>
 
 // FAST detector parameters
 #define FAST_EPSILON (13.0f)
@@ -9,9 +6,6 @@
 // #define FAST_EPSILON (13.0f)
 // #define FAST_MIN_ARC_LENGTH 12
 #define FAST_SCORE SUM_OF_ABS_DIFF_ON_ARC
-
-// Remark: the Rosten CPU version only works with
-//         SUM_OF_ABS_DIFF_ON_ARC and MAX_THRESHOLD
 
 // NMS parameters
 #define HORIZONTAL_BORDER 0

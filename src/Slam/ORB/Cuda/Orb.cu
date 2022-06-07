@@ -5,6 +5,9 @@
 #include <helper_cuda.h>
 #include <cstdio> // for printf
 
+// #include <cooperative_groups.h>
+// using namespace cooperative_groups;
+
 namespace Jetracer
 {
 
@@ -142,11 +145,51 @@ namespace Jetracer
         }
     }
 
+    // __device__ int atomicAggInc(int *ctr)
+    // {
+    //     auto g = coalesced_threads();
+    //     int warp_res;
+    //     if (g.thread_rank() == 0)
+    //         warp_res = atomicAdd(ctr, g.size());
+    //     return g.shfl(warp_res, 0) + g.thread_rank();
+    // }
+
+    __global__ void filter_keypoints_kernel(float *src_keypoints_score,
+                                            float2 *src_keypoints_pos,
+                                            unsigned char *src_descriptors,
+                                            float *dst_keypoints_score,
+                                            float2 *dst_keypoints_pos,
+                                            unsigned char *dst_descriptors,
+                                            int max_keypoints_num,
+                                            unsigned int *keypoints_num,
+                                            float min_score)
+    {
+        int idx = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (idx < max_keypoints_num)
+        {
+            float score = src_keypoints_score[idx];
+            float2 pos = src_keypoints_pos[idx];
+
+            if (score > min_score)
+            {
+                // int newIdx = atomicAggInc(keypoints_num);
+                int newIdx = atomicAdd(keypoints_num, 1);
+                dst_keypoints_score[newIdx] = score;
+                dst_keypoints_pos[newIdx] = pos;
+                for (int i = 0; i < 32; i++)
+                {
+                    dst_descriptors[newIdx * 32 + i] = src_descriptors[idx * 32 + i];
+                }
+            }
+        }
+    }
+
     void compute_fast_angle(pRgbdFrame current_frame, TmpData_t &tmp_frame)
     {
         // sdfs
         compute_fast_angle_kernel<<<tmp_frame.max_keypoints_num, 32, 0, tmp_frame.stream>>>(tmp_frame.d_keypoints_angle,
-                                                                                            current_frame->d_keypoints_pos,
+                                                                                            tmp_frame.d_keypoints_pos,
                                                                                             current_frame->d_grayscale_image,
                                                                                             current_frame->grayscale_pitch,
                                                                                             current_frame->rgb_image_resolution.x,
@@ -158,13 +201,43 @@ namespace Jetracer
     void calc_orb(pRgbdFrame current_frame, TmpData_t &tmp_frame)
     {
         calc_orb_kernel<<<tmp_frame.max_keypoints_num, CUDA_WARP_SIZE, 0, tmp_frame.stream>>>(tmp_frame.d_keypoints_angle,
-                                                                                              current_frame->d_keypoints_pos,
-                                                                                              current_frame->d_descriptors,
+                                                                                              tmp_frame.d_keypoints_pos,
+                                                                                              tmp_frame.d_descriptors,
                                                                                               current_frame->d_grayscale_image,
                                                                                               current_frame->grayscale_pitch,
                                                                                               current_frame->rgb_image_resolution.x,
                                                                                               current_frame->rgb_image_resolution.y,
                                                                                               tmp_frame.max_keypoints_num);
+        // CUDA_KERNEL_CHECK();
+    }
+
+    void filter_keypoints(pRgbdFrame current_frame, TmpData_t &tmp_frame, float min_score)
+    {
+
+        checkCudaErrors(cudaMemcpyAsync(current_frame->d_keypoints_num,
+                                        &current_frame->keypoints_num,
+                                        sizeof(unsigned int),
+                                        cudaMemcpyHostToDevice,
+                                        tmp_frame.stream));
+
+        dim3 threads(CUDA_WARP_SIZE);
+        dim3 blocks(calc_block_size(tmp_frame.max_keypoints_num, threads.x));
+
+        filter_keypoints_kernel<<<blocks, threads, 0, tmp_frame.stream>>>(tmp_frame.d_keypoints_score,
+                                                                          tmp_frame.d_keypoints_pos,
+                                                                          tmp_frame.d_descriptors,
+                                                                          current_frame->d_keypoints_score,
+                                                                          current_frame->d_keypoints_pos,
+                                                                          current_frame->d_descriptors,
+                                                                          tmp_frame.max_keypoints_num,
+                                                                          current_frame->d_keypoints_num,
+                                                                          min_score);
+        checkCudaErrors(cudaMemcpyAsync(&current_frame->keypoints_num,
+                                        current_frame->d_keypoints_num,
+                                        sizeof(unsigned int),
+                                        cudaMemcpyDeviceToHost,
+                                        tmp_frame.stream));
+
         // CUDA_KERNEL_CHECK();
     }
 

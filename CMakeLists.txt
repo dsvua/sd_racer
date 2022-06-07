@@ -35,7 +35,7 @@ find_library(NPPIF_LIBRARY nppif ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 find_library(NPPC_LIBRARY nppc ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 # find_library(CULIBOS culibos ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES})
 
-find_package(realsense2 2.29.0 REQUIRED)
+find_package(realsense2 REQUIRED)
 find_package(Eigen3 REQUIRED)
 # find_package(OpenCV REQUIRED)
 
@@ -56,4 +56,5 @@ add_definitions(-DASIO_STANDALONE)
 
 #ds set sources
 message("${PROJECT_NAME}|final flags: '${CMAKE_CXX_FLAGS}'")
-add_subdirectory(src)
+ADD_SUBDIRECTORY(src)
+

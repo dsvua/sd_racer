@@ -50,9 +50,13 @@ namespace Jetracer
         int x = blockIdx.x * blockDim.x + threadIdx.x;
         int y = blockIdx.y * blockDim.y + threadIdx.y;
 
-        auto other_pixel_index = y * other_intrin->width + x;
-        if (aligned_out[other_pixel_index] == 0xffff)
-            aligned_out[other_pixel_index] = 0;
+        if (x < other_intrin->width && y < other_intrin->height)
+
+        {
+            auto other_pixel_index = y * other_intrin->width + x;
+            if (aligned_out[other_pixel_index] == 0xffff)
+                aligned_out[other_pixel_index] = 0;
+        }
     }
 
     /* Given pixel coordinates and depth in an image with no distortion or inverse distortion coefficients, compute the corresponding point in 3D space relative to the same camera */
@@ -151,9 +155,9 @@ namespace Jetracer
 
         //// Map the top-left corner of the depth pixel onto the other image
         float depth_pixel[2] = {depth_x + shift, depth_y + shift}, depth_point[3], other_point[3], other_pixel[2];
-        rs2_deproject_pixel_to_point(depth_point, depth_intrin, depth_pixel, depth_val);
-        rs2_transform_point_to_point(other_point, depth_to_other, depth_point);
-        rs2_project_point_to_pixel(other_pixel, other_intrin, other_point);
+        Jetracer::rs2_deproject_pixel_to_point(depth_point, depth_intrin, depth_pixel, depth_val);
+        Jetracer::rs2_transform_point_to_point(other_point, depth_to_other, depth_point);
+        Jetracer::rs2_project_point_to_pixel(other_pixel, other_intrin, other_point);
         mapped_pixels[mapped_index].x = static_cast<int>(other_pixel[0] + 0.5f);
         mapped_pixels[mapped_index].y = static_cast<int>(other_pixel[1] + 0.5f);
     }
@@ -201,30 +205,30 @@ namespace Jetracer
 
         // config threads
         dim3 threads(RS2_CUDA_THREADS_PER_BLOCK, RS2_CUDA_THREADS_PER_BLOCK);
-        dim3 depth_blocks(calc_block_size(realsense_rgbd_frame->depth_intrinsics.width, threads.x), 
+        dim3 depth_blocks(calc_block_size(realsense_rgbd_frame->depth_intrinsics.width, threads.x),
                           calc_block_size(realsense_rgbd_frame->depth_intrinsics.height, threads.y));
         dim3 other_blocks(calc_block_size(realsense_rgbd_frame->rgb_intrinsics.width, threads.x),
                           calc_block_size(realsense_rgbd_frame->rgb_intrinsics.height, threads.y));
         dim3 mapping_blocks(depth_blocks.x, depth_blocks.y, 2);
 
         kernel_map_depth_to_other<<<mapping_blocks, threads, 0, tmp_frame.stream>>>(tmp_frame.d_pixel_map.get(),
-                                                                       realsense_rgbd_frame->d_depth_image,
-                                                                       tmp_frame.d_depth_intrinsics.get(),
-                                                                       tmp_frame.d_rgb_intrinsics.get(),
-                                                                       tmp_frame.d_depth_other_extrinsics.get(),
-                                                                       realsense_rgbd_frame->depth_scale);
+                                                                                    realsense_rgbd_frame->d_depth_image,
+                                                                                    tmp_frame.d_depth_intrinsics.get(),
+                                                                                    tmp_frame.d_rgb_intrinsics.get(),
+                                                                                    tmp_frame.d_depth_other_extrinsics.get(),
+                                                                                    realsense_rgbd_frame->depth_scale);
         // checkCudaErrors(cudaStreamSynchronize(tmp_frame.stream));
 
         kernel_depth_to_other<<<depth_blocks, threads, 0, tmp_frame.stream>>>(realsense_rgbd_frame->d_depth_image_aligned,
-                                                                 realsense_rgbd_frame->d_depth_image,
-                                                                 tmp_frame.d_pixel_map.get(),
-                                                                 tmp_frame.d_depth_intrinsics.get(),
-                                                                 tmp_frame.d_rgb_intrinsics.get());
+                                                                              realsense_rgbd_frame->d_depth_image,
+                                                                              tmp_frame.d_pixel_map.get(),
+                                                                              tmp_frame.d_depth_intrinsics.get(),
+                                                                              tmp_frame.d_rgb_intrinsics.get());
         // checkCudaErrors(cudaStreamSynchronize(tmp_frame.stream));
 
         kernel_replace_to_zero<<<other_blocks, threads, 0, tmp_frame.stream>>>(realsense_rgbd_frame->d_depth_image_aligned,
                                                                                tmp_frame.d_rgb_intrinsics.get());
         // checkCudaErrors(cudaStreamSynchronize(tmp_frame.stream));
-}
+    }
 
 }

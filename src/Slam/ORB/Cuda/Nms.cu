@@ -267,8 +267,8 @@ namespace Jetracer
                                                                                                     CELL_SIZE_HEIGHT,
                                                                                                     tmp_frame.d_keypoint_response_pitch / sizeof(float),
                                                                                                     tmp_frame.d_keypoint_response,
-                                                                                                    current_frame->d_keypoints_pos,
-                                                                                                    current_frame->d_keypoints_score);
+                                                                                                    tmp_frame.d_keypoints_pos,
+                                                                                                    tmp_frame.d_keypoints_score);
         // checkCudaErrors(cudaStreamSynchronize(stream));
     }
 } // namespace Jetracer

@@ -68,7 +68,7 @@ namespace Jetracer
 
         // WebSockets
         int websocket_server_port = 8765;
-        std::string websocket_server_name = "Jetracer server";
+        std::string websocket_server_name = "SDracer server";
     } context_t;
 
 } // namespace Jetracer

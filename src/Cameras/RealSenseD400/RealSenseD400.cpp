@@ -27,30 +27,16 @@ namespace Jetracer
             if (fs)
             {
                 // With callbacks, all synchronized streams will arrive in a single frameset
-                for (auto &&fr : fs)
-                {
-                    std::cout << " " << fr.get_profile().stream_name(); // will print: Depth Infrared 1
-                }
-                std::cout << std::endl;
+                // for (auto &&fr : fs)
+                // {
+                //     std::cout << " " << fr.get_profile().stream_name(); // will print: Depth Infrared 1
+                // }
+                // std::cout << std::endl;
 
                 auto rs_depth_frame = fs.get_depth_frame();
                 auto rs_rgb_frame = fs.get_color_frame();
-                // auto rs_ir_frame_left = fs.get_infrared_frame(1);
-                // auto rs_ir_frame_right = fs.get_infrared_frame(2);
                 auto image_height = rs_rgb_frame.get_height();
                 auto image_width = rs_rgb_frame.get_width();
-
-                // std::cout << " rs_ir_frame_left: " << rs_ir_frame_left.get_frame_number()
-                //           << " rs_ir_frame_right: " << rs_ir_frame_right.get_frame_number()
-                //           << " rs_rgb_frame: " << rs_rgb_frame.get_frame_number() << std::endl;
-
-                // std::cout << " frame id: " << fs.get_depth_frame().get_frame_metadata(RS2_FRAME_METADATA_FRAME_COUNTER) << " "
-                //           << fs.get_color_frame().get_frame_metadata(RS2_FRAME_METADATA_FRAME_COUNTER) << std::endl;
-
-                // fs.keep();
-                // rs_depth_frame.keep();
-                // rs_rgb_frame.keep();
-                // rs_ir_frame.keep();
 
                 auto rgbd_frame = std::make_shared<RealSenseD400RgbdFrame_t>();
                 rgbd_frame->frame_type = FrameType::RGBD;
@@ -156,21 +142,10 @@ namespace Jetracer
         auto depth_sensor = selected_device.first<rs2::depth_sensor>();
         // depth_sensor.set_option(RS2_OPTION_EMITTER_ENABLED, 0.f); // Disable emitter/laser
 
-        // Auto-exposure should be disabled to get 60fps on color camera
+        // Auto-exposure priority should be disabled to get 60fps on color camera
         auto color_sensor = selected_device.first<rs2::color_sensor>();
         color_sensor.set_option(RS2_OPTION_ENABLE_AUTO_EXPOSURE, 1);
         color_sensor.set_option(RS2_OPTION_AUTO_EXPOSURE_PRIORITY, 0);
-
-        // Get camera intrinsics
-        // auto depth_stream = selection.get_stream(RS2_STREAM_DEPTH)
-        //                         .as<rs2::video_stream_profile>();
-        // intrinsics = depth_stream.get_intrinsics();
-        // auto principal_point = std::make_pair(i.ppx, i.ppy);
-        // auto focal_length = std::make_pair(i.fx, i.fy);
-
-        // std::cout << "ppx: " << intrinsics.ppx << " ppy: " << intrinsics.ppy << std::endl;
-        // std::cout << "fx: " << intrinsics.fx << " fy: " << intrinsics.fy << std::endl;
-        // std::cout << "k1: " << intrinsics.coeffs[0] << " k2: " << intrinsics.coeffs[1] << " p1: " << intrinsics.coeffs[2] << " p2: " << intrinsics.coeffs[3] << " k3: " << intrinsics.coeffs[4] << std::endl;
 
         std::cout << "RealSenseD400 is initialized" << std::endl;
     }

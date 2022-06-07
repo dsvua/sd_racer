@@ -61,7 +61,7 @@ RUN apt remove --purge --auto-remove cmake && \
 RUN git clone https://github.com/IntelRealSense/librealsense.git && \
     echo `pwd` && ls &&\
     cd librealsense && \
-    git checkout v2.42.0 && \
+    git checkout v2.50.0 && \
     mkdir build && \
     cd build && \
     cmake ../ \
@@ -88,14 +88,14 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
 
 # Install opencv
-RUN apt-get update && \
-    apt-get install -y libopencv-dev \
-    libopencv-core-dev \
-    libopencv-calib3d-dev \
-    libopencv-features2d-dev \
-    libopencv-imgcodecs-dev \
-    libopencv-imgproc-dev && \
-    rm -rf /var/lib/apt/lists/*
+# RUN apt-get update && \
+#     apt-get install -y libopencv-dev \
+#     libopencv-core-dev \
+#     libopencv-calib3d-dev \
+#     libopencv-features2d-dev \
+#     libopencv-imgcodecs-dev \
+#     libopencv-imgproc-dev && \
+#     rm -rf /var/lib/apt/lists/*
 
 # RUN apt-get update && \
 #     apt-get install -y nlohmann-json3-dev && \

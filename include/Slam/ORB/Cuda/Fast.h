@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <cuda_runtime.h>
-#include "../../Defines.h"
+#include "../../../Types/Defines.h"
 #include "../../../Types/Frames.h"
 
 // FAST detector parameters
@@ -23,7 +23,8 @@ namespace Jetracer
     };
 
     void fast_gpu_calculate_lut(unsigned char *d_corner_lut,
-                                const int &min_arc_length);
+                                const int &min_arc_length,
+                                cudaStream_t stream);
 
     void fast_gpu_calc_corner_response(const int image_width,
                                        const int image_height,

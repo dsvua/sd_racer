@@ -8,7 +8,7 @@
 
 namespace Jetracer
 {
-    void detectOrbs(pRgbdFrame current_frame, TmpData_t &tmp_frame);
+    void detectOrbs(pRgbdFrame current_frame, TmpData_t &tmp_frame, float min_score);
 
 } // namespace Jetracer
 
