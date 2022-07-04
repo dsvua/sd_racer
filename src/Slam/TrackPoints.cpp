@@ -31,6 +31,7 @@ namespace Jetracer
 
         copy_visible_landmarks(current_frame,
                                tmp_frame,
+                               _ctx->maximum_descriptor_distance_tracking,
                                _ctx->maximum_projection_tracking_distance_pixels);
 
         // robot_to_world = current_frame->robot_to_world;
