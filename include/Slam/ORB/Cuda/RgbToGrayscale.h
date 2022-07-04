@@ -7,6 +7,7 @@
 
 namespace Jetracer
 {
+    void printing_eigen(TmpData_t &tmp_frame); // just for testing Eigen transfer to Cuda kernels
     void rgb_to_grayscale(pRgbdFrame current_frame, TmpData_t &tmp_frame);
 }
 

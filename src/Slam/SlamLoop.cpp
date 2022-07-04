@@ -25,7 +25,8 @@ namespace Jetracer
 
         checkCudaErrors(cudaStreamCreateWithFlags(&tmp_frame.stream, cudaStreamNonBlocking));
         // matrices initialization
-        robot_to_world.setIdentity();
+        tmp_frame.robot_to_world.setIdentity();
+        tmp_frame.worldmap_landmarks.allocate_measurements(tmp_frame.stream);
 
         std::cout << "SlamLoop is initialized" << std::endl;
     }
@@ -56,7 +57,7 @@ namespace Jetracer
 
     void SlamLoop::processRgbdFrame(pRgbdFrame rgbd_frame)
     {
-        if (rgbd_frame->depth_frame_id > 90) // camera needs to settle down for first 90 frames
+        if (rgbd_frame->depth_frame_id > _ctx->frames_to_skip) // camera needs to settle down for first $frames_to_skip
         {
             auto base_frame = std::static_pointer_cast<BaseFrame>(rgbd_frame);
             rgbd_frame->uploadToGPU(tmp_frame.stream);
@@ -76,9 +77,14 @@ namespace Jetracer
             {
                 rgb_to_grayscale(rgbd_frame, tmp_frame);
                 detectOrbs(rgbd_frame, tmp_frame, _ctx->min_score);
+                trackPoints(rgbd_frame);
 
                 checkCudaErrors(cudaStreamSynchronize(tmp_frame.stream));
                 tmp_frame.previous_frame = base_frame;
+                pEvent event = std::make_shared<BaseEvent>();
+                event->event_type = EventType::event_rgbd_slam_processed;
+                event->message = rgbd_frame;
+                this->_ctx->sendEvent(event);
             }
         }
     }

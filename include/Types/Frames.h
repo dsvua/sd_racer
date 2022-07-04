@@ -3,16 +3,21 @@
 
 #include <cuda_runtime.h>
 #include <helper_cuda.h>
-// #include <eigen3/Eigen/Eigen>
+#include <eigen3/Eigen/Eigen>
 #include <librealsense2/rs.hpp> // Include RealSense Cross Platform API
 #include "Defines.h"
-#include "Math.h"
-#include "ORUtils/SE3Pose.h"
+#include "Landmarks.h"
 
 namespace Jetracer
 {
 
 #pragma once
+
+    enum class RobotStatus
+    {
+        Localizing,
+        Tracking
+    };
 
     enum class FrameType
     {
@@ -54,11 +59,33 @@ namespace Jetracer
 
         int max_keypoints_num = 0;
 
-        // tracking
-        // TransformMatrix3D camera_left_to_world_guess = TransformMatrix3D::Identity();
-        // TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
+        // Landmarks frame_points; // they are not landmarks yet
+        Landmarks worldmap_landmarks;
+        Landmarks visible_landmarks;
+        int *d_landmarks_num_visible;
 
+        // tracking
+        TransformMatrix3D world_to_camera_guess = TransformMatrix3D::Identity();
+        TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
+
+        RobotStatus current_robot_status = RobotStatus::Localizing;
         pBaseFrame previous_frame;
+
+        ~TmpData()
+        {
+            if (d_corner_lut)
+                checkCudaErrors(cudaFree(d_corner_lut));
+            if (d_keypoint_response)
+                checkCudaErrors(cudaFree(d_keypoint_response));
+            if (d_keypoints_angle)
+                checkCudaErrors(cudaFree(d_keypoints_angle));
+            if (d_keypoints_pos)
+                checkCudaErrors(cudaFree(d_keypoints_pos));
+            if (d_keypoints_score)
+                checkCudaErrors(cudaFree(d_keypoints_score));
+            if (d_descriptors)
+                checkCudaErrors(cudaFree(d_descriptors));
+        }
 
     } TmpData_t;
 
@@ -66,6 +93,10 @@ namespace Jetracer
     {
         FrameType frame_type;
         double timestamp;
+        Landmarks frame_points;
+
+        CameraMatrix camera_matrix;
+
         bool keypoints_detected = false;
         unsigned int keypoints_num = 0;
         unsigned int *d_keypoints_num;
@@ -73,24 +104,24 @@ namespace Jetracer
         // For ORB
         float2 *d_keypoints_pos;
         float *d_keypoints_score;
-        unsigned char *d_descriptors;
 
-        Matrix4f robot_to_world;
+        // split descriptor in half, since I can read only
+        // 16 bytes in one read and I want coalsced read of descriptors
+        unsigned char *d_descriptors1;
+        unsigned char *d_descriptors2;
 
-        // TransformMatrix3D robot_to_local_map = TransformMatrix3D::Identity();
-        // TransformMatrix3D local_map_to_robot = TransformMatrix3D::Identity();
-        // TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
-        // TransformMatrix3D world_to_robot = TransformMatrix3D::Identity();
+        int2 *d_matched_landmarks;
+        int2 *d_matched_points;
+        int *d_num_of_matched_landmarks;
+        int *d_num_of_matched_points;
+        int h_num_of_matched_landmarks = 0;
+        int h_num_of_matched_points = 0;
 
-        // TransformMatrix3D camera_left_to_world = TransformMatrix3D::Identity();
-        // TransformMatrix3D world_to_camera_left = TransformMatrix3D::Identity();
+        PointCoordinates *d_points;
 
-        //! @brief position tracking bookkeeping: after optimization
-        // TransformMatrix3D _previous_to_current_camera = TransformMatrix3D::Identity();
+        TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
+        TransformMatrix3D world_to_camera_guess = TransformMatrix3D::Identity();
 
-        // ds additional information
-        // TransformMatrix3D _camera_left_in_world_guess;
-        // TransformMatrix3D _camera_left_in_world_guess_previous;
         bool _has_guess = false;
 
         ImageFrame()
@@ -104,10 +135,22 @@ namespace Jetracer
                 checkCudaErrors(cudaFree(d_keypoints_pos));
             if (d_keypoints_score)
                 checkCudaErrors(cudaFree(d_keypoints_score));
-            if (d_descriptors)
-                checkCudaErrors(cudaFree(d_descriptors));
+            if (d_descriptors1)
+                checkCudaErrors(cudaFree(d_descriptors1));
+            if (d_descriptors2)
+                checkCudaErrors(cudaFree(d_descriptors2));
             if (d_keypoints_num)
                 checkCudaErrors(cudaFree(d_keypoints_num));
+            if (d_points)
+                checkCudaErrors(cudaFree(d_points));
+            if (d_matched_landmarks)
+                checkCudaErrors(cudaFree(d_matched_landmarks));
+            if (d_matched_points)
+                checkCudaErrors(cudaFree(d_matched_points));
+            if (d_num_of_matched_landmarks)
+                checkCudaErrors(cudaFree(d_num_of_matched_landmarks));
+            if (d_num_of_matched_points)
+                checkCudaErrors(cudaFree(d_num_of_matched_points));
         }
 
     } ImageFrame_t;

@@ -1,7 +1,6 @@
 ADD_LIBRARY(${PROJECT_NAME}_library_gpu
     Cuda/CudaCommon.cpp
     Types/Fault.cpp
-    Types/ORUtils/SE3Pose.cpp
     Cameras/RealSenseD400/RealSenseD400.cpp
     Cameras/RealSenseD400/Cuda/DepthAlign.cu
     EventLoop/EventsThread.cpp
@@ -9,6 +8,7 @@ ADD_LIBRARY(${PROJECT_NAME}_library_gpu
     WebSocket/FoxgloveWebSocketCom.cpp
     Slam/SlamLoop.cpp
     Slam/TrackPoints.cpp
+    Slam/Cuda/ProcessLandmarks.cu
     Slam/ORB/OrbDetector.cpp
     Slam/ORB/Cuda/Fast.cu
     Slam/ORB/Cuda/Orb.cu

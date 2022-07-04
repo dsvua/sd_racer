@@ -31,13 +31,23 @@ namespace Jetracer
                                        tmp_frame.max_keypoints_num * sizeof(float)));
         }
 
-        checkCudaErrors(cudaMalloc((void **)&current_frame->d_descriptors,
-                                   tmp_frame.max_keypoints_num * 32 * sizeof(unsigned char)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_descriptors1,
+                                   tmp_frame.max_keypoints_num / 2 * 32 * sizeof(unsigned char)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_descriptors2,
+                                   tmp_frame.max_keypoints_num / 2 * 32 * sizeof(unsigned char)));
         checkCudaErrors(cudaMalloc((void **)&current_frame->d_keypoints_pos,
                                    tmp_frame.max_keypoints_num * sizeof(float2)));
         checkCudaErrors(cudaMalloc((void **)&current_frame->d_keypoints_score,
                                    tmp_frame.max_keypoints_num * sizeof(float)));
         checkCudaErrors(cudaMalloc((void **)&current_frame->d_keypoints_num, sizeof(int)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_points,
+                                   tmp_frame.max_keypoints_num * sizeof(PointCoordinates)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_matched_landmarks,
+                                   tmp_frame.max_keypoints_num * sizeof(int2)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_matched_points,
+                                   tmp_frame.max_keypoints_num * sizeof(int2)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_num_of_matched_landmarks, sizeof(int)));
+        checkCudaErrors(cudaMalloc((void **)&current_frame->d_num_of_matched_points, sizeof(int)));
 
         fast_detect(current_frame, tmp_frame);
         compute_fast_angle(current_frame, tmp_frame);

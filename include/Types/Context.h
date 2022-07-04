@@ -29,18 +29,15 @@ namespace Jetracer
         int max_descriptor_distance = 10;
         float max_points_distance = 10000;
 
-        // Fast keypoints
-        int pyramid_levels = 1;
-
         // CUDA
         int CUDA_THREADS_PER_BLOCK = 32;
 
         // currently unused
-        int frames_to_skip = 50; // discard all frames until start_frame to
-                                 // give autoexposure, etc. a chance to settle
-        int left_gap = 60;       // ignore left 60 pixels on depth image as they
-                                 // usually have 0 distance and are useless
-        int bottom_gap = 50;     // ignore bottom 50 pixels on depth image
+        int frames_to_skip = 100; // discard all frames until start_frame to
+                                  // give autoexposure, etc. a chance to settle
+        int left_gap = 60;        // ignore left 60 pixels on depth image as they
+                                  // usually have 0 distance and are useless
+        int bottom_gap = 50;      // ignore bottom 50 pixels on depth image
         // unsigned int bottom_gap = 50; // ignore bottom 50 pixels on depth image
 
         int min_obstacle_height = 5;   // ignore obstacles lower then 5mm
@@ -65,6 +62,8 @@ namespace Jetracer
                                               // when robot is stationary.
         float new_keyframe_angle = 0.003f;    // radians turn for new keyframe
         float new_keyframe_distance = 300.0f; // distance in mm for new keyframe
+        float maximum_projection_tracking_distance_pixels = 50.0f;
+        float maximum_descriptor_distance_tracking = 0.2 * 256; // 256bits = 32 x 8
 
         // WebSockets
         int websocket_server_port = 8765;

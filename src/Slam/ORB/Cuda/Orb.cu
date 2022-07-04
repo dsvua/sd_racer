@@ -145,21 +145,15 @@ namespace Jetracer
         }
     }
 
-    // __device__ int atomicAggInc(int *ctr)
-    // {
-    //     auto g = coalesced_threads();
-    //     int warp_res;
-    //     if (g.thread_rank() == 0)
-    //         warp_res = atomicAdd(ctr, g.size());
-    //     return g.shfl(warp_res, 0) + g.thread_rank();
-    // }
-
     __global__ void filter_keypoints_kernel(float *src_keypoints_score,
                                             float2 *src_keypoints_pos,
                                             unsigned char *src_descriptors,
                                             float *dst_keypoints_score,
                                             float2 *dst_keypoints_pos,
-                                            unsigned char *dst_descriptors,
+                                            unsigned char *dst_descriptors1,
+                                            unsigned char *dst_descriptors2,
+                                            uint16_t *d_depth_image,
+                                            int2 depth_resolution,
                                             int max_keypoints_num,
                                             unsigned int *keypoints_num,
                                             float min_score)
@@ -171,16 +165,23 @@ namespace Jetracer
             float score = src_keypoints_score[idx];
             float2 pos = src_keypoints_pos[idx];
 
+            // if (score > min_score && d_depth_image[(int)pos.x + (int)pos.y * depth_resolution.x] > 0)
             if (score > min_score)
             {
                 // int newIdx = atomicAggInc(keypoints_num);
                 int newIdx = atomicAdd(keypoints_num, 1);
                 dst_keypoints_score[newIdx] = score;
                 dst_keypoints_pos[newIdx] = pos;
-                for (int i = 0; i < 32; i++)
-                {
-                    dst_descriptors[newIdx * 32 + i] = src_descriptors[idx * 32 + i];
-                }
+                uint4 * u_dst_descriptors1 = (uint4 *)dst_descriptors1;
+                uint4 * u_dst_descriptors2 = (uint4 *)dst_descriptors2;
+                uint4 * u_src_descriptors = (uint4 *)src_descriptors;
+                u_dst_descriptors1[newIdx] = u_src_descriptors[idx * 2];
+                u_dst_descriptors2[newIdx] = u_src_descriptors[idx * 2 + 1];
+
+                // for (int i = 0; i < 32; i++)
+                // {
+                //     dst_descriptors[newIdx * 32 + i] = src_descriptors[idx * 32 + i];
+                // }
             }
         }
     }
@@ -228,7 +229,10 @@ namespace Jetracer
                                                                           tmp_frame.d_descriptors,
                                                                           current_frame->d_keypoints_score,
                                                                           current_frame->d_keypoints_pos,
-                                                                          current_frame->d_descriptors,
+                                                                          current_frame->d_descriptors1,
+                                                                          current_frame->d_descriptors2,
+                                                                          current_frame->d_depth_image_aligned,
+                                                                          current_frame->depth_image_resolution,
                                                                           tmp_frame.max_keypoints_num,
                                                                           current_frame->d_keypoints_num,
                                                                           min_score);
@@ -237,6 +241,9 @@ namespace Jetracer
                                         sizeof(unsigned int),
                                         cudaMemcpyDeviceToHost,
                                         tmp_frame.stream));
+
+        // cudaStreamSynchronize(tmp_frame.stream);
+        // std::cout << "Total keypoints: " << tmp_frame.max_keypoints_num << ", valid: " << current_frame->keypoints_num << std::endl;
 
         // CUDA_KERNEL_CHECK();
     }

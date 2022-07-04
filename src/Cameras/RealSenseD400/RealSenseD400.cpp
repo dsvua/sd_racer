@@ -70,6 +70,10 @@ namespace Jetracer
                 std::memcpy(rgbd_frame->h_depth_image, rs_depth_frame.get_data(), rgbd_frame->depth_image_size);
                 std::memcpy(rgbd_frame->h_rgb_image, rs_rgb_frame.get_data(), rgbd_frame->rgb_image_size);
 
+                rgbd_frame->camera_matrix << rgbd_frame->rgb_intrinsics.fx, 0, rgbd_frame->rgb_intrinsics.ppx,
+                    0, rgbd_frame->rgb_intrinsics.fy, rgbd_frame->rgb_intrinsics.ppy,
+                    0, 0, 0;
+
                 event->event_type = EventType::event_rgbd_frame;
                 event->message = rgbd_frame;
                 this->_ctx->sendEvent(event);

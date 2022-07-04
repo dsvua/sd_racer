@@ -32,9 +32,6 @@ namespace Jetracer
         context_t *_ctx;
         std::mutex m_mutex_subscribers;
         TmpData_t tmp_frame;
-        Matrix4f robot_to_world;
-        Landmarks landmarks;
-        // TransformMatrix3D robot_to_world = TransformMatrix3D::Identity();
     };
 
 } // namespace Jetracer

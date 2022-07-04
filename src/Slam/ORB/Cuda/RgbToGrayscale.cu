@@ -1,4 +1,5 @@
 #include "Slam/ORB/Cuda/RgbToGrayscale.h"
+#include "Types/Defines.h"
 #include "Cuda/CudaCommon.h"
 #include <iostream>
 
@@ -21,6 +22,34 @@ namespace Jetracer
         }
     }
 
+    // Just for testing Eigen matrixes use in kernels
+    __global__ void printing_eigen_kernel(PointCoordinates *d_testvector)
+    {
+        PointCoordinates d_testvector2 = *d_testvector;
+        printf("d_testvector2: ");
+        for (int i=0; i < 3; i++)
+            printf("\t %0.2f", d_testvector2(i,1));
+        printf("\n");
+    }
+
+    // void printing_eigen(TmpData_t &tmp_frame)
+    // {
+    //     PointCoordinates* d_testvector;
+    //     PointCoordinates h_testvector;
+    //     h_testvector << 3, 2, 1;
+    //     std::cout << "h_testvector: " << h_testvector << std::endl;
+
+    //     checkCudaErrors(cudaMalloc((void **)&d_testvector, sizeof(PointCoordinates)));
+    //     checkCudaErrors(cudaMemcpyAsync((void *)d_testvector,
+    //                                     (void *)&h_testvector,
+    //                                     sizeof(PointCoordinates),
+    //                                     cudaMemcpyHostToDevice,
+    //                                     tmp_frame.stream));
+
+    //     printing_eigen<<<1,1,0,tmp_frame.stream>>>(d_testvector);
+
+    // }
+
     void rgb_to_grayscale(pRgbdFrame current_frame, TmpData_t &tmp_frame)
     {
 
@@ -33,6 +62,7 @@ namespace Jetracer
                                                                           current_frame->rgb_image_resolution.y,
                                                                           current_frame->grayscale_pitch,
                                                                           current_frame->rgb_pitch);
+        
         // CUDA_KERNEL_CHECK();
     }
 }
